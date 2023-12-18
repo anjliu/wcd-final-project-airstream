@@ -4,6 +4,7 @@ Streaming flight data from API to live map.
 ## Presentation
 [Slide deck for presentation and demo. ](https://docs.google.com/presentation/d/1AVGM9dwIbtKg4ybZAlIq1ZFDem3R83pShw5UX-ix6OE/edit?usp=sharing)
 
+The slides include some details of the data transformations and a screenshot of the visualization. 
 ## Architecture
 The data pipeline is structured as follows:
 1. Data is extracted from airlabs.co by making a http request using Nifi.
@@ -13,7 +14,14 @@ The data pipeline is structured as follows:
 5. A Lambda Function is used to allow the Athena database to be queried via a URL.
 6. An HTML page uses Javascript to
     1. make a request to the URL
-    2. convert the received data into GeoJSON
+    2. convert the received JSON into GeoJSON
     3. visualize the data using Mapbox’s API.
 
 ![Project Architecture](./doc/WCD_finalProject_architecture.png)
+
+## Data Transformations
+- The raw data is extracted as a JSON object, filtered to flights departing from YYZ (Toronto Pearson Airport). In NIFI, the nested object of interest is specified and split into its constituent objects, each of which contain a record of a flight's position and other attributes.
+- Each record is loaded to the MySQL database as a row. The data is now structured such that each row defines a position at a point in time for one flight.
+- Minimal transformations are performed in the streaming process. The data is streamed in append mode.
+- The Athena query searches for the most recent position of each flight while also filtering out any records with a timestamp beyond a given threshold to exclude stale data. 
+- The records returned from making this query over a URL is received as a JSON array. This flat array is converted into a GeoJSON format so that it can be used by Mapbox's API.
