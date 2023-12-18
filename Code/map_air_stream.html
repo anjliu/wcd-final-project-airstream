@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Flight Positions</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYWpsaXUiLCJhIjoiY2l2aWQxNml2MDA3cDJ0bDVtY2t1N2wwYSJ9.qnLZC4PzukODnIRN2iBYvA';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            // Choose from Mapbox's core styles
+            style: 'mapbox://styles/mapbox/dark-v11',
+            zoom: 3,
+            // Start the map centered at Toronto Pearson Airport
+            center: [-79.62881506690985, 43.67754459057855]
+        });
+
+        map.on('load', async () => {
+            // Get the initial location .
+            const geojson = await getLocation();
+            // Add the location as a source.
+            map.addSource('iss', {
+                type: 'geojson',
+                data: geojson
+            });
+            // Add the symbol layer to the map.
+            map.addLayer({
+                'id': 'iss',
+                'type': 'symbol',
+                'source': 'iss',
+                'layout': {
+                    // use the airplane symple
+                    'icon-image': 'airport',
+                    // rotate the icon using its feature property from the geojson
+                    'icon-rotate': ['get','rotate']
+                }
+            });
+
+            // Update the source from the API every 5 seconds.
+            const updateSource = setInterval(async () => {
+                const geojson = await getLocation(updateSource);
+                console.log(geojson);
+                map.getSource('iss').setData(geojson);
+            }, 5000);
+
+            map.flyTo({
+                // fly to Toronto Pearson Airport first
+                center: [-79.62881506690985, 43.67754459057855],
+                speed: 0.5
+            });
+
+            async function getLocation(updateSource) {
+                // Make a GET request to the API and return the query results.
+                    const response = await fetch(
+                        'https://55x5behwrbt2uazy7huwiicuye0jtusz.lambda-url.us-east-2.on.aws',
+                        { method: 'GET', mode: 'cors' }
+                    );
+
+                    const response_list = await response.json();
+                    // Create a list for the feature objects that need to go in the geojson
+                    const features_list = [];
+                    for (response_item of response_list) {
+                        console.log(response_item);
+                        // retrieve the coordinate and direction from the response
+                        let { lng, lat, flight_iata,dir } = response_item;
+                        // append coordinate and direction as geojson-formatted json object into the feature list
+                        features_list.push(
+                            {
+                                'type': 'Feature',
+                                'properties' : {  
+                                    'flight_number' : flight_iata,
+                                    'rotate': parseFloat(dir),
+                                }, 
+                                'geometry': {
+                                    'type': 'Point',
+                                    'coordinates': [parseFloat(lng), parseFloat(lat)]
+                                }
+                            }
+                        );
+                    }
+                    // put the feature list into a geojson format with the right header object
+                    return {
+                        'type': 'FeatureCollection',
+                        'features': features_list
+                    };
+                    
+                ;
+
+            }
+        });
+        console.log(geojson)
+    </script>
+
+</body>
+
+</html>
