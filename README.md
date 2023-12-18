@@ -11,11 +11,11 @@ The data pipeline is structured as follows:
 2. The response JSON is processed in Nifi and dumped into a MySQL database.
 3. The data from MySQL is then streamed through Kafka and Spark Streaming before landing in an S3 bucket in Hudi format.
 4. The Hudi data is added to Athena to be made available for querying.
-5. A Lambda Function is used to allow the Athena database to be queried via a URL.
-6. An HTML page uses Javascript to
+5. A Lambda Function is used to allow the Athena database to be queried via a URL, using an example from [simplemaps](https://simplemaps.com/resources/athena-over-url).
+7. An HTML page uses Javascript to
     1. make a request to the URL
     2. convert the received JSON into GeoJSON
-    3. visualize the data using Mapbox’s API.
+    3. visualize the data using Mapbox’s API, following their example of a [live-updating map](https://docs.mapbox.com/mapbox-gl-js/example/live-geojson/).
 
 ![Project Architecture](./doc/WCD_finalProject_architecture.png)
 
