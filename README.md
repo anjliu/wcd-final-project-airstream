@@ -17,7 +17,7 @@ The data pipeline is structured as follows:
     2. convert the received JSON into GeoJSON
     3. visualize the data using Mapbox’s API, following their example of a [live-updating map](https://docs.mapbox.com/mapbox-gl-js/example/live-geojson/).
 
-![Project Architecture](./doc/WCD_finalProject_architecture.png)
+![Project Architecture](./doc/WCD_final_architecture.png)
 
 ## Data Transformations
 - The raw data is extracted as a JSON object, filtered to flights departing from YYZ (Toronto Pearson Airport). In NIFI, the nested object of interest is specified and split into its constituent objects, each of which contain a record of a flight's position and other attributes.
